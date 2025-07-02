@@ -57,16 +57,27 @@ const OrdersList = ({ orders }: OrdersListProps) => {
               <h4 className="font-medium text-gray-700">Items:</h4>
               <div className="grid gap-2">
                 {order.items.map((item, index) => (
-                  <div key={index} className="flex justify-between items-center bg-gray-50 rounded-lg p-3">
-                    <div className="flex items-center">
-                      <span className="font-medium text-gray-800">{item.menuItem.name}</span>
-                      <Badge variant="secondary" className="ml-2">
-                        x{item.quantity}
-                      </Badge>
+                  <div key={index} className="bg-gray-50 rounded-lg p-3">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <div className="flex items-center">
+                          <span className="font-medium text-gray-800">{item.menuItem.name}</span>
+                          <Badge variant="secondary" className="ml-2">
+                            x{item.quantity}
+                          </Badge>
+                        </div>
+                        {(item.sauce || item.sauceCup || item.drink) && (
+                          <div className="mt-1 text-sm text-gray-600">
+                            {item.sauce && <div>• Sauce: {item.sauce}</div>}
+                            {item.sauceCup && <div>• Sauce Cup: {item.sauceCup}</div>}
+                            {item.drink && <div>• Drink: {item.drink}</div>}
+                          </div>
+                        )}
+                      </div>
+                      <span className="text-orange-600 font-semibold">
+                        ₾{(item.menuItem.price * item.quantity).toFixed(2)}
+                      </span>
                     </div>
-                    <span className="text-orange-600 font-semibold">
-                      ₾{(item.menuItem.price * item.quantity).toFixed(2)}
-                    </span>
                   </div>
                 ))}
               </div>

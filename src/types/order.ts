@@ -3,12 +3,17 @@ export interface MenuItem {
   id: string;
   name: string;
   price: number;
-  category: 'burgers' | 'sides' | 'drinks' | 'desserts';
+  category: 'mains' | 'sides' | 'sauces' | 'drinks' | 'addons';
+  requiresSauce?: boolean;
+  isCombo?: boolean;
 }
 
 export interface OrderItem {
   menuItem: MenuItem;
   quantity: number;
+  sauce?: string;
+  sauceCup?: string;
+  drink?: string;
 }
 
 export interface Order {
