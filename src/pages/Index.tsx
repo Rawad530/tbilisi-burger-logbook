@@ -1,18 +1,34 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Clock, Receipt } from "lucide-react";
+import { Plus, Clock, Receipt, CheckCircle } from "lucide-react";
 import NewOrderDialog from "@/components/NewOrderDialog";
 import OrdersList from "@/components/OrdersList";
 import { Order } from "@/types/order";
+import { saveOrdersToStorage, loadOrdersFromStorage } from "@/utils/orderUtils";
 
 const Index = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [isNewOrderOpen, setIsNewOrderOpen] = useState(false);
 
+  useEffect(() => {
+    const loadedOrders = loadOrdersFromStorage();
+    setOrders(loadedOrders);
+  }, []);
+
   const addOrder = (order: Order) => {
-    setOrders(prev => [order, ...prev]);
+    const newOrders = [order, ...orders];
+    setOrders(newOrders);
+    saveOrdersToStorage(newOrders);
+  };
+
+  const completeOrder = (orderId: string) => {
+    const updatedOrders = orders.map(order =>
+      order.id === orderId ? { ...order, status: 'completed' as const } : order
+    );
+    setOrders(updatedOrders);
+    saveOrdersToStorage(updatedOrders);
   };
 
   const todaysOrders = orders.filter(order => {
@@ -20,7 +36,9 @@ const Index = () => {
     return new Date(order.timestamp).toDateString() === today;
   });
 
-  const todaysRevenue = todaysOrders.reduce((sum, order) => sum + order.totalPrice, 0);
+  const preparingOrders = todaysOrders.filter(order => order.status === 'preparing');
+  const completedOrders = todaysOrders.filter(order => order.status === 'completed');
+  const todaysRevenue = completedOrders.reduce((sum, order) => sum + order.totalPrice, 0);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-red-50 p-4">
@@ -34,17 +52,31 @@ const Index = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <Card className="bg-white shadow-lg border-0">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-gray-600">
-                Today's Orders
+                Being Prepared
               </CardTitle>
-              <Receipt className="h-5 w-5 text-orange-500" />
+              <Clock className="h-5 w-5 text-orange-500" />
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-gray-800">
-                {todaysOrders.length}
+                {preparingOrders.length}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white shadow-lg border-0">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600">
+                Completed Today
+              </CardTitle>
+              <CheckCircle className="h-5 w-5 text-green-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-gray-800">
+                {completedOrders.length}
               </div>
             </CardContent>
           </Card>
@@ -54,7 +86,7 @@ const Index = () => {
               <CardTitle className="text-sm font-medium text-gray-600">
                 Today's Revenue
               </CardTitle>
-              <Clock className="h-5 w-5 text-red-500" />
+              <Receipt className="h-5 w-5 text-green-600" />
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-gray-800">
@@ -90,7 +122,7 @@ const Index = () => {
         </div>
 
         {/* Orders List */}
-        <OrdersList orders={orders} />
+        <OrdersList orders={orders} onCompleteOrder={completeOrder} />
 
         {/* New Order Dialog */}
         <NewOrderDialog

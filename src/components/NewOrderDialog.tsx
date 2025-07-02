@@ -1,8 +1,8 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Order, OrderItem, MenuItem } from "@/types/order";
 import { menuItems } from "@/data/menu";
+import { getNextOrderNumber } from "@/utils/orderUtils";
 import MenuSection from "./MenuSection";
 import OrderSummary from "./OrderSummary";
 
@@ -22,8 +22,6 @@ interface PendingItem {
 const NewOrderDialog = ({ isOpen, onClose, onAddOrder }: NewOrderDialogProps) => {
   const [selectedItems, setSelectedItems] = useState<OrderItem[]>([]);
   const [pendingItem, setPendingItem] = useState<PendingItem | null>(null);
-  const [orderNumber] = useState(() => Math.floor(Math.random() * 10000) + 1000);
-  const [timestamp] = useState(() => new Date());
 
   const addItemToOrder = (menuItem: MenuItem) => {
     if (menuItem.requiresSauce || menuItem.isCombo) {
@@ -94,10 +92,11 @@ const NewOrderDialog = ({ isOpen, onClose, onAddOrder }: NewOrderDialogProps) =>
 
     const newOrder: Order = {
       id: Date.now().toString(),
-      orderNumber,
-      timestamp,
+      orderNumber: getNextOrderNumber(),
+      timestamp: new Date(),
       items: selectedItems,
-      totalPrice
+      totalPrice,
+      status: 'preparing'
     };
 
     onAddOrder(newOrder);
@@ -127,17 +126,8 @@ const NewOrderDialog = ({ isOpen, onClose, onAddOrder }: NewOrderDialogProps) =>
       <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-gray-800">
-            New Order #{orderNumber}
+            New Order
           </DialogTitle>
-          <p className="text-gray-600">
-            {timestamp.toLocaleString('en-GB', { 
-              day: '2-digit', 
-              month: '2-digit', 
-              year: 'numeric',
-              hour: '2-digit', 
-              minute: '2-digit' 
-            })}
-          </p>
         </DialogHeader>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

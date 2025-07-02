@@ -16,10 +16,13 @@ export interface OrderItem {
   drink?: string;
 }
 
+export type OrderStatus = 'preparing' | 'completed';
+
 export interface Order {
   id: string;
   orderNumber: number;
   timestamp: Date;
   items: OrderItem[];
   totalPrice: number;
+  status: OrderStatus;
 }

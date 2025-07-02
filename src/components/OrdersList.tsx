@@ -1,14 +1,18 @@
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Clock, Receipt } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Receipt, Clock, CheckCircle } from "lucide-react";
 import { Order } from "@/types/order";
+import OrderStatusCard from "./OrderStatusCard";
 
 interface OrdersListProps {
   orders: Order[];
+  onCompleteOrder?: (orderId: string) => void;
 }
 
-const OrdersList = ({ orders }: OrdersListProps) => {
+const OrdersList = ({ orders, onCompleteOrder }: OrdersListProps) => {
+  const preparingOrders = orders.filter(order => order.status === 'preparing');
+  const completedOrders = orders.filter(order => order.status === 'completed');
+
   if (orders.length === 0) {
     return (
       <Card className="bg-white shadow-lg border-0">
@@ -22,69 +26,49 @@ const OrdersList = ({ orders }: OrdersListProps) => {
   }
 
   return (
-    <div className="space-y-4">
-      <h2 className="text-2xl font-bold text-gray-800 mb-4">Recent Orders</h2>
-      
-      {orders.map(order => (
-        <Card key={order.id} className="bg-white shadow-lg border-0 hover:shadow-xl transition-shadow">
-          <CardHeader className="pb-3">
-            <div className="flex justify-between items-start">
-              <div>
-                <CardTitle className="text-lg font-bold text-gray-800">
-                  Order #{order.orderNumber}
-                </CardTitle>
-                <div className="flex items-center text-gray-600 mt-1">
-                  <Clock className="h-4 w-4 mr-1" />
-                  <span className="text-sm">
-                    {order.timestamp.toLocaleString('en-GB', {
-                      day: '2-digit',
-                      month: '2-digit', 
-                      year: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}
-                  </span>
-                </div>
-              </div>
-              <Badge className="bg-gradient-to-r from-orange-500 to-red-500 text-white">
-                ₾{order.totalPrice.toFixed(2)}
-              </Badge>
-            </div>
-          </CardHeader>
-          
-          <CardContent>
-            <div className="space-y-2">
-              <h4 className="font-medium text-gray-700">Items:</h4>
-              <div className="grid gap-2">
-                {order.items.map((item, index) => (
-                  <div key={index} className="bg-gray-50 rounded-lg p-3">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <div className="flex items-center">
-                          <span className="font-medium text-gray-800">{item.menuItem.name}</span>
-                          <Badge variant="secondary" className="ml-2">
-                            x{item.quantity}
-                          </Badge>
-                        </div>
-                        {(item.sauce || item.sauceCup || item.drink) && (
-                          <div className="mt-1 text-sm text-gray-600">
-                            {item.sauce && <div>• Sauce: {item.sauce}</div>}
-                            {item.sauceCup && <div>• Sauce Cup: {item.sauceCup}</div>}
-                            {item.drink && <div>• Drink: {item.drink}</div>}
-                          </div>
-                        )}
-                      </div>
-                      <span className="text-orange-600 font-semibold">
-                        ₾{(item.menuItem.price * item.quantity).toFixed(2)}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+    <div className="space-y-8">
+      {/* Being Prepared Section */}
+      {preparingOrders.length > 0 && (
+        <div>
+          <div className="flex items-center gap-2 mb-4">
+            <Clock className="h-6 w-6 text-orange-500" />
+            <h2 className="text-2xl font-bold text-gray-800">Being Prepared</h2>
+            <span className="bg-orange-100 text-orange-700 px-2 py-1 rounded-full text-sm font-medium">
+              {preparingOrders.length}
+            </span>
+          </div>
+          <div className="grid gap-4">
+            {preparingOrders.map(order => (
+              <OrderStatusCard
+                key={order.id}
+                order={order}
+                onCompleteOrder={onCompleteOrder}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Completed Section */}
+      {completedOrders.length > 0 && (
+        <div>
+          <div className="flex items-center gap-2 mb-4">
+            <CheckCircle className="h-6 w-6 text-green-500" />
+            <h2 className="text-2xl font-bold text-gray-800">Completed Orders</h2>
+            <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-sm font-medium">
+              {completedOrders.length}
+            </span>
+          </div>
+          <div className="grid gap-4">
+            {completedOrders.map(order => (
+              <OrderStatusCard
+                key={order.id}
+                order={order}
+              />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
