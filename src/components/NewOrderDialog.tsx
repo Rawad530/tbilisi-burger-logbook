@@ -1,13 +1,10 @@
 
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus } from "lucide-react";
 import { Order, OrderItem, MenuItem } from "@/types/order";
-import { menuItems, sauceOptions, drinkOptions } from "@/data/menu";
+import { menuItems } from "@/data/menu";
+import MenuSection from "./MenuSection";
+import OrderSummary from "./OrderSummary";
 
 interface NewOrderDialogProps {
   isOpen: boolean;
@@ -117,6 +114,14 @@ const NewOrderDialog = ({ isOpen, onClose, onAddOrder }: NewOrderDialogProps) =>
     addons: menuItems.filter(item => item.category === 'addons')
   };
 
+  const categoryTitles = {
+    mains: 'Burgers & Wraps',
+    sides: 'Bites & Sides',
+    sauces: 'Sauces',
+    drinks: 'Drinks',
+    addons: 'Add-ons'
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
@@ -141,234 +146,26 @@ const NewOrderDialog = ({ isOpen, onClose, onAddOrder }: NewOrderDialogProps) =>
             <h3 className="text-xl font-semibold text-gray-800">Menu</h3>
             
             {Object.entries(categorizedItems).map(([category, items]) => (
-              <div key={category}>
-                <h4 className="text-lg font-medium text-gray-700 mb-3 capitalize">
-                  {category === 'mains' ? 'Burgers & Wraps' : 
-                   category === 'sides' ? 'Bites & Sides' :
-                   category === 'addons' ? 'Add-ons' : category}
-                </h4>
-                <div className="grid gap-3">
-                  {items.map(item => (
-                    <Card key={item.id} className="hover:shadow-md transition-shadow">
-                      <CardContent className="p-4">
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <h5 className="font-medium text-gray-800">{item.name}</h5>
-                            <p className="text-orange-600 font-semibold">₾{item.price.toFixed(2)}</p>
-                          </div>
-                          <Button
-                            onClick={() => addItemToOrder(item)}
-                            size="sm"
-                            className="bg-orange-500 hover:bg-orange-600"
-                          >
-                            <Plus className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </div>
+              <MenuSection
+                key={category}
+                title={categoryTitles[category as keyof typeof categoryTitles]}
+                items={items}
+                onAddItem={addItemToOrder}
+              />
             ))}
           </div>
 
           {/* Order Summary */}
-          <div className="space-y-4">
-            <h3 className="text-xl font-semibold text-gray-800">Order Summary</h3>
-            
-            {/* Pending Item Configuration */}
-            {pendingItem && (
-              <Card className="border-orange-500 border-2">
-                <CardContent className="p-4">
-                  <h4 className="font-medium text-gray-800 mb-3">Configure: {pendingItem.menuItem.name}</h4>
-                  
-                  {pendingItem.menuItem.requiresSauce && (
-                    <div className="mb-3">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Sauce *
-                      </label>
-                      <Select value={pendingItem.sauce} onValueChange={(value) => 
-                        setPendingItem(prev => prev ? {...prev, sauce: value} : null)
-                      }>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select sauce" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {sauceOptions.map(sauce => (
-                            <SelectItem key={sauce} value={sauce}>{sauce}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
-
-                  {pendingItem.menuItem.isCombo && (
-                    <>
-                      <div className="mb-3">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Sauce Cup
-                        </label>
-                        <Select value={pendingItem.sauceCup} onValueChange={(value) => 
-                          setPendingItem(prev => prev ? {...prev, sauceCup: value} : null)
-                        }>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select sauce cup (optional)" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {sauceOptions.map(sauce => (
-                              <SelectItem key={sauce} value={sauce}>{sauce}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      
-                      <div className="mb-3">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Drink *
-                        </label>
-                        <Select value={pendingItem.drink} onValueChange={(value) => 
-                          setPendingItem(prev => prev ? {...prev, drink: value} : null)
-                        }>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select drink" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {drinkOptions.map(drink => (
-                              <SelectItem key={drink} value={drink}>{drink}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </>
-                  )}
-
-                  {pendingItem.menuItem.name.includes('Meal') && !pendingItem.menuItem.isCombo && (
-                    <>
-                      <div className="mb-3">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Sauce Cup
-                        </label>
-                        <Select value={pendingItem.sauceCup} onValueChange={(value) => 
-                          setPendingItem(prev => prev ? {...prev, sauceCup: value} : null)
-                        }>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select sauce cup (optional)" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {sauceOptions.map(sauce => (
-                              <SelectItem key={sauce} value={sauce}>{sauce}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      
-                      <div className="mb-3">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Drink *
-                        </label>
-                        <Select value={pendingItem.drink} onValueChange={(value) => 
-                          setPendingItem(prev => prev ? {...prev, drink: value} : null)
-                        }>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select drink" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {drinkOptions.map(drink => (
-                              <SelectItem key={drink} value={drink}>{drink}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </>
-                  )}
-
-                  <div className="flex space-x-2">
-                    <Button onClick={confirmPendingItem} className="bg-green-500 hover:bg-green-600">
-                      Add to Order
-                    </Button>
-                    <Button onClick={() => setPendingItem(null)} variant="outline">
-                      Cancel
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {selectedItems.length === 0 && !pendingItem ? (
-              <p className="text-gray-500 text-center py-8">No items selected</p>
-            ) : (
-              <>
-                <div className="space-y-3 max-h-96 overflow-y-auto">
-                  {selectedItems.map((item, index) => (
-                    <Card key={index}>
-                      <CardContent className="p-4">
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            <h5 className="font-medium text-gray-800">
-                              {item.menuItem.name}
-                            </h5>
-                            {item.sauce && (
-                              <p className="text-sm text-gray-600">Sauce: {item.sauce}</p>
-                            )}
-                            {item.sauceCup && (
-                              <p className="text-sm text-gray-600">Sauce Cup: {item.sauceCup}</p>
-                            )}
-                            {item.drink && (
-                              <p className="text-sm text-gray-600">Drink: {item.drink}</p>
-                            )}
-                            <p className="text-sm text-gray-600">
-                              ₾{item.menuItem.price.toFixed(2)} each
-                            </p>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <Button
-                              onClick={() => updateItemQuantity(index, item.quantity - 1)}
-                              size="sm"
-                              variant="outline"
-                              className="w-8 h-8 p-0"
-                            >
-                              -
-                            </Button>
-                            <Badge variant="secondary" className="px-3">
-                              {item.quantity}
-                            </Badge>
-                            <Button
-                              onClick={() => updateItemQuantity(index, item.quantity + 1)}
-                              size="sm"
-                              variant="outline"
-                              className="w-8 h-8 p-0"
-                            >
-                              +
-                            </Button>
-                          </div>
-                        </div>
-                        <div className="mt-2 text-right">
-                          <span className="font-semibold text-orange-600">
-                            ₾{(item.menuItem.price * item.quantity).toFixed(2)}
-                          </span>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-
-                <div className="border-t pt-4">
-                  <div className="flex justify-between items-center text-xl font-bold">
-                    <span>Total:</span>
-                    <span className="text-orange-600">₾{totalPrice.toFixed(2)}</span>
-                  </div>
-                </div>
-
-                <Button
-                  onClick={handleCreateOrder}
-                  className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white py-3 text-lg font-semibold"
-                  disabled={selectedItems.length === 0}
-                >
-                  Create Order
-                </Button>
-              </>
-            )}
-          </div>
+          <OrderSummary
+            selectedItems={selectedItems}
+            pendingItem={pendingItem}
+            totalPrice={totalPrice}
+            onUpdateItemQuantity={updateItemQuantity}
+            onUpdatePendingItem={setPendingItem}
+            onConfirmPendingItem={confirmPendingItem}
+            onCancelPendingItem={() => setPendingItem(null)}
+            onCreateOrder={handleCreateOrder}
+          />
         </div>
       </DialogContent>
     </Dialog>
