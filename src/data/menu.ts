@@ -19,7 +19,7 @@ export const menuItems: MenuItem[] = [
   { id: '12', name: 'Onion Rings', price: 5.50, category: 'sides' },
   { id: '13', name: 'Mozzarella Sticks', price: 7.00, category: 'sides' },
   { id: '14', name: 'Chicken Wings (6 pcs)', price: 8.50, category: 'sides' },
-  { id: '15', name: 'Chicken Nuggets (8 pcs)', price: 7.50, category: sides' },
+  { id: '15', name: 'Chicken Nuggets (8 pcs)', price: 7.50, category: 'sides' },
   
   // Drinks
   { id: '16', name: 'Coca Cola', price: 2.50, category: 'drinks' },
