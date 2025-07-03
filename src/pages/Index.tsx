@@ -5,8 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Clock, Receipt, CheckCircle } from "lucide-react";
 import NewOrderDialog from "@/components/NewOrderDialog";
 import OrdersList from "@/components/OrdersList";
+import HistorySection from "@/components/HistorySection";
 import { Order } from "@/types/order";
-import { saveOrdersToStorage, loadOrdersFromStorage } from "@/utils/orderUtils";
+import { saveOrdersToStorage, loadOrdersFromStorage, backupToCloud } from "@/utils/orderUtils";
 
 const Index = () => {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -15,12 +16,24 @@ const Index = () => {
   useEffect(() => {
     const loadedOrders = loadOrdersFromStorage();
     setOrders(loadedOrders);
+    
+    // Auto-backup every hour
+    const backupInterval = setInterval(() => {
+      if (loadedOrders.length > 0) {
+        backupToCloud(loadedOrders);
+      }
+    }, 60 * 60 * 1000); // 1 hour
+
+    return () => clearInterval(backupInterval);
   }, []);
 
   const addOrder = (order: Order) => {
     const newOrders = [order, ...orders];
     setOrders(newOrders);
     saveOrdersToStorage(newOrders);
+    
+    // Auto-backup when new order is added
+    setTimeout(() => backupToCloud(newOrders), 1000);
   };
 
   const completeOrder = (orderId: string) => {
@@ -29,16 +42,29 @@ const Index = () => {
     );
     setOrders(updatedOrders);
     saveOrdersToStorage(updatedOrders);
+    
+    // Auto-backup when order status changes
+    setTimeout(() => backupToCloud(updatedOrders), 1000);
   };
 
+  const updateOrders = (newOrders: Order[]) => {
+    setOrders(newOrders);
+    saveOrdersToStorage(newOrders);
+  };
+
+  // Filter today's orders for the main dashboard
   const todaysOrders = orders.filter(order => {
     const today = new Date().toDateString();
     return new Date(order.timestamp).toDateString() === today;
   });
 
   const preparingOrders = todaysOrders.filter(order => order.status === 'preparing');
-  const completedOrders = todaysOrders.filter(order => order.status === 'completed');
-  const todaysRevenue = completedOrders.reduce((sum, order) => sum + order.totalPrice, 0);
+  const completedTodayOrders = todaysOrders.filter(order => order.status === 'completed');
+  const todaysRevenue = completedTodayOrders.reduce((sum, order) => sum + order.totalPrice, 0);
+
+  // All-time statistics
+  const allCompletedOrders = orders.filter(order => order.status === 'completed');
+  const totalRevenue = allCompletedOrders.reduce((sum, order) => sum + order.totalPrice, 0);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-red-50 p-4">
@@ -52,7 +78,7 @@ const Index = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
           <Card className="bg-white shadow-lg border-0">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-gray-600">
@@ -76,7 +102,7 @@ const Index = () => {
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-gray-800">
-                {completedOrders.length}
+                {completedTodayOrders.length}
               </div>
             </CardContent>
           </Card>
@@ -98,9 +124,23 @@ const Index = () => {
           <Card className="bg-white shadow-lg border-0">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-gray-600">
-                Total Orders
+                Total Revenue
               </CardTitle>
-              <Receipt className="h-5 w-5 text-orange-600" />
+              <Receipt className="h-5 w-5 text-blue-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-gray-800">
+                ₾{totalRevenue.toFixed(2)}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white shadow-lg border-0">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600">
+                All Orders
+              </CardTitle>
+              <Receipt className="h-5 w-5 text-purple-600" />
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-gray-800">
@@ -121,8 +161,17 @@ const Index = () => {
           </Button>
         </div>
 
-        {/* Orders List */}
-        <OrdersList orders={orders} onCompleteOrder={completeOrder} />
+        {/* Today's Active Orders - Only show preparing orders */}
+        <OrdersList 
+          orders={preparingOrders} 
+          onCompleteOrder={completeOrder} 
+        />
+
+        {/* History Section - Collapsible with all orders */}
+        <HistorySection 
+          orders={orders}
+          onOrdersUpdate={updateOrders}
+        />
 
         {/* New Order Dialog */}
         <NewOrderDialog
