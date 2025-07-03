@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { CalendarIcon, Search, Download, RotateCcw } from "lucide-react";
 import { Order } from "@/types/order";
 import { exportOrdersToCSV, generateOrderSummary } from "@/utils/exportUtils";
+import { DateRange } from "react-day-picker";
 
 interface HistoryFiltersProps {
   orders: Order[];
@@ -19,7 +20,7 @@ const HistoryFilters = ({ orders, onFilterChange }: HistoryFiltersProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [dateFilter, setDateFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [customDateRange, setCustomDateRange] = useState<{from?: Date, to?: Date}>({});
+  const [customDateRange, setCustomDateRange] = useState<DateRange | undefined>(undefined);
 
   const applyFilters = () => {
     let filtered = [...orders];
@@ -61,10 +62,10 @@ const HistoryFilters = ({ orders, onFilterChange }: HistoryFiltersProps) => {
           filtered = filtered.filter(order => order.timestamp >= monthAgo);
           break;
         case "custom":
-          if (customDateRange.from) {
+          if (customDateRange?.from) {
             filtered = filtered.filter(order => order.timestamp >= customDateRange.from!);
           }
-          if (customDateRange.to) {
+          if (customDateRange?.to) {
             const toEndOfDay = new Date(customDateRange.to);
             toEndOfDay.setHours(23, 59, 59, 999);
             filtered = filtered.filter(order => order.timestamp <= toEndOfDay);
@@ -85,7 +86,7 @@ const HistoryFilters = ({ orders, onFilterChange }: HistoryFiltersProps) => {
     setSearchTerm("");
     setDateFilter("all");
     setStatusFilter("all");
-    setCustomDateRange({});
+    setCustomDateRange(undefined);
     onFilterChange(orders);
   };
 
@@ -97,7 +98,7 @@ const HistoryFilters = ({ orders, onFilterChange }: HistoryFiltersProps) => {
     exportOrdersToCSV(filtered);
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     applyFilters();
   }, [searchTerm, dateFilter, statusFilter, customDateRange, orders]);
 
@@ -183,14 +184,14 @@ const HistoryFilters = ({ orders, onFilterChange }: HistoryFiltersProps) => {
               <PopoverTrigger asChild>
                 <Button variant="outline" className="justify-start text-left">
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {customDateRange.from ? customDateRange.from.toLocaleDateString() : "Pick dates"}
+                  {customDateRange?.from ? customDateRange.from.toLocaleDateString() : "Pick dates"}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
                 <Calendar
                   mode="range"
                   selected={customDateRange}
-                  onSelect={(range) => setCustomDateRange(range || {})}
+                  onSelect={setCustomDateRange}
                   numberOfMonths={2}
                 />
               </PopoverContent>
