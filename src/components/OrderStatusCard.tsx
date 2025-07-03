@@ -2,16 +2,17 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Clock, Receipt, CheckCircle } from "lucide-react";
+import { Clock, Receipt, CheckCircle, X } from "lucide-react";
 import { Order } from "@/types/order";
 import { formatTimestamp } from "@/utils/orderUtils";
 
 interface OrderStatusCardProps {
   order: Order;
   onCompleteOrder?: (orderId: string) => void;
+  onCancelOrder?: (orderId: string) => void;
 }
 
-const OrderStatusCard = ({ order, onCompleteOrder }: OrderStatusCardProps) => {
+const OrderStatusCard = ({ order, onCompleteOrder, onCancelOrder }: OrderStatusCardProps) => {
   const isCompleted = order.status === 'completed';
 
   return (
@@ -82,15 +83,29 @@ const OrderStatusCard = ({ order, onCompleteOrder }: OrderStatusCardProps) => {
           </div>
         </div>
         
-        {!isCompleted && onCompleteOrder && (
+        {!isCompleted && (onCompleteOrder || onCancelOrder) && (
           <div className="mt-4 pt-4 border-t">
-            <Button
-              onClick={() => onCompleteOrder(order.id)}
-              className="w-full bg-green-500 hover:bg-green-600 text-white"
-            >
-              <CheckCircle className="h-4 w-4 mr-2" />
-              Mark as Complete
-            </Button>
+            <div className="flex gap-2">
+              {onCompleteOrder && (
+                <Button
+                  onClick={() => onCompleteOrder(order.id)}
+                  className="flex-1 bg-green-500 hover:bg-green-600 text-white"
+                >
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  Mark as Complete
+                </Button>
+              )}
+              {onCancelOrder && (
+                <Button
+                  onClick={() => onCancelOrder(order.id)}
+                  variant="destructive"
+                  className="flex-1"
+                >
+                  <X className="h-4 w-4 mr-2" />
+                  Cancel Order
+                </Button>
+              )}
+            </div>
           </div>
         )}
       </CardContent>

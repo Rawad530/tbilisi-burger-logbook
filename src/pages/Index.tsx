@@ -1,31 +1,46 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Clock, Receipt, CheckCircle } from "lucide-react";
+import { Plus, Clock, Receipt, CheckCircle, LogOut, User } from "lucide-react";
 import NewOrderDialog from "@/components/NewOrderDialog";
 import OrdersList from "@/components/OrdersList";
 import HistorySection from "@/components/HistorySection";
+import CancelOrderDialog from "@/components/CancelOrderDialog";
+import LoginPage from "@/components/LoginPage";
 import { Order } from "@/types/order";
-import { saveOrdersToStorage, loadOrdersFromStorage, backupToCloud } from "@/utils/orderUtils";
+import { saveOrdersToStorage, loadOrdersFromStorage } from "@/utils/orderUtils";
+import { createBackup, saveBackupToStorage } from "@/utils/cloudBackup";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Index = () => {
+  const { isAuthenticated, currentUser, logout } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [isNewOrderOpen, setIsNewOrderOpen] = useState(false);
+  const [cancelOrderDialog, setCancelOrderDialog] = useState<{
+    isOpen: boolean;
+    order: Order | null;
+  }>({ isOpen: false, order: null });
 
   useEffect(() => {
-    const loadedOrders = loadOrdersFromStorage();
-    setOrders(loadedOrders);
-    
-    // Auto-backup every hour
-    const backupInterval = setInterval(() => {
-      if (loadedOrders.length > 0) {
-        backupToCloud(loadedOrders);
-      }
-    }, 60 * 60 * 1000); // 1 hour
+    if (isAuthenticated) {
+      const loadedOrders = loadOrdersFromStorage();
+      setOrders(loadedOrders);
+      
+      // Auto-backup every hour
+      const backupInterval = setInterval(() => {
+        if (loadedOrders.length > 0) {
+          const backup = createBackup(loadedOrders, currentUser || undefined);
+          saveBackupToStorage(backup);
+        }
+      }, 60 * 60 * 1000); // 1 hour
 
-    return () => clearInterval(backupInterval);
-  }, []);
+      return () => clearInterval(backupInterval);
+    }
+  }, [isAuthenticated, currentUser]);
+
+  if (!isAuthenticated) {
+    return <LoginPage />;
+  }
 
   const addOrder = (order: Order) => {
     const newOrders = [order, ...orders];
@@ -33,7 +48,10 @@ const Index = () => {
     saveOrdersToStorage(newOrders);
     
     // Auto-backup when new order is added
-    setTimeout(() => backupToCloud(newOrders), 1000);
+    setTimeout(() => {
+      const backup = createBackup(newOrders, currentUser || undefined);
+      saveBackupToStorage(backup);
+    }, 1000);
   };
 
   const completeOrder = (orderId: string) => {
@@ -44,7 +62,32 @@ const Index = () => {
     saveOrdersToStorage(updatedOrders);
     
     // Auto-backup when order status changes
-    setTimeout(() => backupToCloud(updatedOrders), 1000);
+    setTimeout(() => {
+      const backup = createBackup(updatedOrders, currentUser || undefined);
+      saveBackupToStorage(backup);
+    }, 1000);
+  };
+
+  const cancelOrder = (orderId: string) => {
+    const orderToCancel = orders.find(order => order.id === orderId);
+    if (orderToCancel) {
+      setCancelOrderDialog({ isOpen: true, order: orderToCancel });
+    }
+  };
+
+  const confirmCancelOrder = () => {
+    if (cancelOrderDialog.order) {
+      const updatedOrders = orders.filter(order => order.id !== cancelOrderDialog.order!.id);
+      setOrders(updatedOrders);
+      saveOrdersToStorage(updatedOrders);
+      
+      // Auto-backup when order is cancelled
+      setTimeout(() => {
+        const backup = createBackup(updatedOrders, currentUser || undefined);
+        saveBackupToStorage(backup);
+      }, 1000);
+    }
+    setCancelOrderDialog({ isOpen: false, order: null });
   };
 
   const updateOrders = (newOrders: Order[]) => {
@@ -69,12 +112,24 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-red-50 p-4">
       <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">
-            Daily Orders Log
-          </h1>
-          <p className="text-gray-600">Tbilisi Burger Restaurant Management System</p>
+        {/* Header with User Info */}
+        <div className="mb-8 flex justify-between items-start">
+          <div>
+            <h1 className="text-4xl font-bold text-gray-800 mb-2">
+              Daily Orders Log
+            </h1>
+            <p className="text-gray-600">Tbilisi Burger Restaurant Management System</p>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow">
+              <User className="h-4 w-4 text-gray-600" />
+              <span className="text-sm font-medium text-gray-700 capitalize">{currentUser}</span>
+            </div>
+            <Button onClick={logout} variant="outline" size="sm">
+              <LogOut className="h-4 w-4 mr-2" />
+              Sign Out
+            </Button>
+          </div>
         </div>
 
         {/* Stats Cards */}
@@ -164,7 +219,8 @@ const Index = () => {
         {/* Today's Active Orders - Only show preparing orders */}
         <OrdersList 
           orders={preparingOrders} 
-          onCompleteOrder={completeOrder} 
+          onCompleteOrder={completeOrder}
+          onCancelOrder={cancelOrder}
         />
 
         {/* History Section - Collapsible with all orders */}
@@ -173,11 +229,18 @@ const Index = () => {
           onOrdersUpdate={updateOrders}
         />
 
-        {/* New Order Dialog */}
+        {/* Dialogs */}
         <NewOrderDialog
           isOpen={isNewOrderOpen}
           onClose={() => setIsNewOrderOpen(false)}
           onAddOrder={addOrder}
+        />
+
+        <CancelOrderDialog
+          isOpen={cancelOrderDialog.isOpen}
+          onClose={() => setCancelOrderDialog({ isOpen: false, order: null })}
+          onConfirm={confirmCancelOrder}
+          order={cancelOrderDialog.order}
         />
       </div>
     </div>

@@ -7,9 +7,10 @@ import OrderStatusCard from "./OrderStatusCard";
 interface OrdersListProps {
   orders: Order[];
   onCompleteOrder?: (orderId: string) => void;
+  onCancelOrder?: (orderId: string) => void;
 }
 
-const OrdersList = ({ orders, onCompleteOrder }: OrdersListProps) => {
+const OrdersList = ({ orders, onCompleteOrder, onCancelOrder }: OrdersListProps) => {
   const preparingOrders = orders.filter(order => order.status === 'preparing');
   const completedOrders = orders.filter(order => order.status === 'completed');
 
@@ -43,6 +44,7 @@ const OrdersList = ({ orders, onCompleteOrder }: OrdersListProps) => {
                 key={order.id}
                 order={order}
                 onCompleteOrder={onCompleteOrder}
+                onCancelOrder={onCancelOrder}
               />
             ))}
           </div>
