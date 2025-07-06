@@ -7,6 +7,7 @@ import { ChevronDown, ChevronUp, History, Archive, CloudDownload, CloudUpload } 
 import { Order } from "@/types/order";
 import HistoryFilters from "./HistoryFilters";
 import OrderStatusCard from "./OrderStatusCard";
+import DeleteOrderDialog from "./DeleteOrderDialog";
 import { backupToCloud, restoreFromCloud } from "@/utils/exportUtils";
 import {
   Pagination,
@@ -26,12 +27,16 @@ const HistorySection = ({ orders, onOrdersUpdate }: HistorySectionProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [filteredOrders, setFilteredOrders] = useState<Order[]>(orders);
   const [currentPage, setCurrentPage] = useState(1);
+  const [deleteOrderDialog, setDeleteOrderDialog] = useState<{
+    isOpen: boolean;
+    order: Order | null;
+  }>({ isOpen: false, order: null });
   const ordersPerPage = 10;
 
   const handleBackup = async () => {
     const success = await backupToCloud(orders);
     if (success) {
-      alert('Orders backed up successfully!');
+      alert('Orders backed up successfully and sent to email!');
     } else {
       alert('Failed to backup orders. Please try again.');
     }
@@ -47,6 +52,22 @@ const HistorySection = ({ orders, onOrdersUpdate }: HistorySectionProps) => {
         alert('No backup found or failed to restore.');
       }
     }
+  };
+
+  const handleDeleteOrder = (orderId: string) => {
+    const orderToDelete = orders.find(order => order.id === orderId);
+    if (orderToDelete) {
+      setDeleteOrderDialog({ isOpen: true, order: orderToDelete });
+    }
+  };
+
+  const confirmDeleteOrder = () => {
+    if (deleteOrderDialog.order) {
+      const updatedOrders = orders.filter(order => order.id !== deleteOrderDialog.order!.id);
+      onOrdersUpdate(updatedOrders);
+      setFilteredOrders(prev => prev.filter(order => order.id !== deleteOrderDialog.order!.id));
+    }
+    setDeleteOrderDialog({ isOpen: false, order: null });
   };
 
   // Pagination logic
@@ -136,6 +157,7 @@ const HistorySection = ({ orders, onOrdersUpdate }: HistorySectionProps) => {
                     <OrderStatusCard
                       key={order.id}
                       order={order}
+                      onDeleteOrder={handleDeleteOrder}
                     />
                   ))}
                 </div>
@@ -190,6 +212,13 @@ const HistorySection = ({ orders, onOrdersUpdate }: HistorySectionProps) => {
           </div>
         </CollapsibleContent>
       </Collapsible>
+
+      <DeleteOrderDialog
+        isOpen={deleteOrderDialog.isOpen}
+        onClose={() => setDeleteOrderDialog({ isOpen: false, order: null })}
+        onConfirm={confirmDeleteOrder}
+        order={deleteOrderDialog.order}
+      />
     </div>
   );
 };

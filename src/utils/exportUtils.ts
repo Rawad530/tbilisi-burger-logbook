@@ -1,3 +1,4 @@
+
 import { Order } from "@/types/order";
 
 export const exportOrdersToCSV = (orders: Order[], filename?: string) => {
@@ -7,6 +8,8 @@ export const exportOrdersToCSV = (orders: Order[], filename?: string) => {
     'Time',
     'Items',
     'Quantities',
+    'Sauces',
+    'Drinks',
     'Total Price',
     'Status'
   ];
@@ -19,6 +22,8 @@ export const exportOrdersToCSV = (orders: Order[], filename?: string) => {
       order.timestamp.toLocaleTimeString('en-GB'),
       order.items.map(item => item.menuItem.name).join('; '),
       order.items.map(item => `${item.menuItem.name}(${item.quantity})`).join('; '),
+      order.items.map(item => item.sauce || 'None').join('; '),
+      order.items.map(item => item.drink || 'None').join('; '),
       `₾${order.totalPrice.toFixed(2)}`,
       order.status
     ].join(','))
@@ -35,6 +40,8 @@ export const exportOrdersToCSV = (orders: Order[], filename?: string) => {
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+
+  return csvContent;
 };
 
 export const generateOrderSummary = (orders: Order[]) => {
@@ -64,6 +71,40 @@ export const generateOrderSummary = (orders: Order[]) => {
   };
 };
 
+// Email backup functionality
+export const sendEmailBackup = async (orders: Order[], email: string) => {
+  try {
+    const csvContent = exportOrdersToCSV(orders, `saucer_burger_backup_${new Date().toISOString().split('T')[0]}.csv`);
+    
+    // Create a mailto link with the CSV content
+    const subject = encodeURIComponent(`Saucer Burger - Orders Backup ${new Date().toLocaleDateString()}`);
+    const body = encodeURIComponent(`Hello,
+
+Please find attached the orders backup for Saucer Burger.
+
+Backup Details:
+- Total Orders: ${orders.length}
+- Total Revenue: ₾${orders.reduce((sum, order) => sum + order.totalPrice, 0).toFixed(2)}
+- Backup Date: ${new Date().toLocaleString()}
+
+CSV Data:
+${csvContent}
+
+Best regards,
+Saucer Burger Management System`);
+    
+    const mailtoLink = `mailto:${email}?subject=${subject}&body=${body}`;
+    
+    // Open the user's email client
+    window.open(mailtoLink);
+    
+    return true;
+  } catch (error) {
+    console.error('Failed to send email backup:', error);
+    return false;
+  }
+};
+
 // Cloud backup functionality (using localStorage as fallback)
 export const backupToCloud = async (orders: Order[]) => {
   try {
@@ -86,6 +127,9 @@ export const backupToCloud = async (orders: Order[]) => {
     if (backupKeys.length > 10) {
       backupKeys.slice(10).forEach(key => localStorage.removeItem(key));
     }
+    
+    // Also send email backup
+    await sendEmailBackup(orders, 'rawad.jalwan@hotmail.com');
     
     return true;
   } catch (error) {

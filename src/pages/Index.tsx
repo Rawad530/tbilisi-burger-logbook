@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -118,7 +119,7 @@ const Index = () => {
             <h1 className="text-4xl font-bold text-gray-800 mb-2">
               Daily Orders Log
             </h1>
-            <p className="text-gray-600">Tbilisi Burger Restaurant Management System</p>
+            <p className="text-gray-600">Saucer Burger Restaurant Management System</p>
           </div>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow">

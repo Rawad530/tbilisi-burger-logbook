@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Order, OrderItem, MenuItem } from "@/types/order";
@@ -106,6 +107,7 @@ const NewOrderDialog = ({ isOpen, onClose, onAddOrder }: NewOrderDialogProps) =>
   };
 
   const categorizedItems = {
+    value: menuItems.filter(item => item.category === 'value'),
     mains: menuItems.filter(item => item.category === 'mains'),
     sides: menuItems.filter(item => item.category === 'sides'),
     sauces: menuItems.filter(item => item.category === 'sauces'),
@@ -114,6 +116,7 @@ const NewOrderDialog = ({ isOpen, onClose, onAddOrder }: NewOrderDialogProps) =>
   };
 
   const categoryTitles = {
+    value: 'Value Burgers',
     mains: 'Burgers & Wraps',
     sides: 'Bites & Sides',
     sauces: 'Sauces',

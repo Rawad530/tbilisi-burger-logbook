@@ -3,7 +3,7 @@ export interface MenuItem {
   id: string;
   name: string;
   price: number;
-  category: 'mains' | 'sides' | 'sauces' | 'drinks' | 'addons';
+  category: 'mains' | 'sides' | 'sauces' | 'drinks' | 'addons' | 'value';
   requiresSauce?: boolean;
   isCombo?: boolean;
 }
