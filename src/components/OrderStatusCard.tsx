@@ -2,7 +2,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Clock, Receipt, CheckCircle, X } from "lucide-react";
+import { Clock, Receipt, CheckCircle, X, Trash2 } from "lucide-react";
 import { Order } from "@/types/order";
 import { formatTimestamp } from "@/utils/orderUtils";
 
@@ -10,9 +10,10 @@ interface OrderStatusCardProps {
   order: Order;
   onCompleteOrder?: (orderId: string) => void;
   onCancelOrder?: (orderId: string) => void;
+  onDeleteOrder?: (orderId: string) => void;
 }
 
-const OrderStatusCard = ({ order, onCompleteOrder, onCancelOrder }: OrderStatusCardProps) => {
+const OrderStatusCard = ({ order, onCompleteOrder, onCancelOrder, onDeleteOrder }: OrderStatusCardProps) => {
   const isCompleted = order.status === 'completed';
 
   return (
@@ -45,9 +46,21 @@ const OrderStatusCard = ({ order, onCompleteOrder, onCancelOrder }: OrderStatusC
             }`}>
               ₾{order.totalPrice.toFixed(2)}
             </Badge>
-            <Badge variant={isCompleted ? 'default' : 'secondary'}>
-              {isCompleted ? 'Completed' : 'Preparing'}
-            </Badge>
+            <div className="flex items-center gap-2">
+              <Badge variant={isCompleted ? 'default' : 'secondary'}>
+                {isCompleted ? 'Completed' : 'Preparing'}
+              </Badge>
+              {onDeleteOrder && (
+                <Button
+                  onClick={() => onDeleteOrder(order.id)}
+                  variant="destructive"
+                  size="sm"
+                  className="h-6 w-6 p-0"
+                >
+                  <Trash2 className="h-3 w-3" />
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </CardHeader>
