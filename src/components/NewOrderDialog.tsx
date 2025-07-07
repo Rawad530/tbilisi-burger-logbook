@@ -1,8 +1,7 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Order, OrderItem, MenuItem } from "@/types/order";
-import { menuItems } from "@/data/menu";
+import { menuItems, addOnOptions } from "@/data/menu";
 import { getNextOrderNumber } from "@/utils/orderUtils";
 import MenuSection from "./MenuSection";
 import OrderSummary from "./OrderSummary";
@@ -66,7 +65,7 @@ const NewOrderDialog = ({ isOpen, onClose, onAddOrder }: NewOrderDialogProps) =>
 
     // Calculate add-on price
     const addonPrice = pendingItem.addons.reduce((total, addon) => {
-      const addonOption = (await import('@/data/menu')).addOnOptions.find(option => option.name === addon);
+      const addonOption = addOnOptions.find(option => option.name === addon);
       return total + (addonOption?.price || 0);
     }, 0);
 
