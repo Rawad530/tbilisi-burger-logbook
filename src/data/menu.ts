@@ -1,4 +1,3 @@
-
 import { MenuItem } from "@/types/order";
 
 export const menuItems: MenuItem[] = [
@@ -9,8 +8,8 @@ export const menuItems: MenuItem[] = [
   // Main Burgers and Wraps - Updated Prices
   { id: '1', name: 'Chicken Burger', price: 9.00, category: 'mains', requiresSauce: true },
   { id: '2', name: 'Chicken Burger (Combo)', price: 15.00, category: 'mains', requiresSauce: true, isCombo: true },
-  { id: '3', name: 'Double Chicken Burger', price: 9.00, category: 'mains', requiresSauce: true },
-  { id: '4', name: 'Double Chicken Burger (Combo)', price: 15.00, category: 'mains', requiresSauce: true, isCombo: true },
+  { id: '3', name: 'Double Chicken Burger', price: 12.00, category: 'mains', requiresSauce: true },
+  { id: '4', name: 'Double Chicken Burger (Combo)', price: 18.00, category: 'mains', requiresSauce: true, isCombo: true },
   { id: '5', name: 'Beef Burger', price: 12.00, category: 'mains', requiresSauce: true },
   { id: '6', name: 'Beef Burger (Combo)', price: 18.00, category: 'mains', requiresSauce: true, isCombo: true },
   { id: '7', name: 'Double Beef Burger', price: 16.00, category: 'mains', requiresSauce: true },
