@@ -18,6 +18,8 @@ interface PendingItem {
   sauce?: string;
   sauceCup?: string;
   drink?: string;
+  addons: string[];
+  spicy: boolean;
 }
 
 const NewOrderDialog = ({ isOpen, onClose, onAddOrder }: NewOrderDialogProps) => {
@@ -25,10 +27,10 @@ const NewOrderDialog = ({ isOpen, onClose, onAddOrder }: NewOrderDialogProps) =>
   const [pendingItem, setPendingItem] = useState<PendingItem | null>(null);
 
   const addItemToOrder = (menuItem: MenuItem) => {
-    if (menuItem.requiresSauce || menuItem.isCombo) {
-      setPendingItem({ menuItem });
+    if (menuItem.requiresSauce || menuItem.isCombo || menuItem.category === 'mains' || menuItem.category === 'value') {
+      setPendingItem({ menuItem, addons: [], spicy: false });
     } else {
-      addFinalItem({ menuItem, quantity: 1 });
+      addFinalItem({ menuItem, quantity: 1, addons: [], spicy: false });
     }
   };
 
@@ -38,7 +40,9 @@ const NewOrderDialog = ({ isOpen, onClose, onAddOrder }: NewOrderDialogProps) =>
         existing.menuItem.id === item.menuItem.id &&
         existing.sauce === item.sauce &&
         existing.sauceCup === item.sauceCup &&
-        existing.drink === item.drink
+        existing.drink === item.drink &&
+        JSON.stringify(existing.addons) === JSON.stringify(item.addons) &&
+        existing.spicy === item.spicy
       );
       
       if (existingIndex >= 0) {
@@ -60,12 +64,22 @@ const NewOrderDialog = ({ isOpen, onClose, onAddOrder }: NewOrderDialogProps) =>
     
     if (requiredSauce || requiredDrink) return;
 
+    // Calculate add-on price
+    const addonPrice = pendingItem.addons.reduce((total, addon) => {
+      const addonOption = (await import('@/data/menu')).addOnOptions.find(option => option.name === addon);
+      return total + (addonOption?.price || 0);
+    }, 0);
+
+    const finalPrice = pendingItem.menuItem.price + addonPrice;
+
     addFinalItem({
-      menuItem: pendingItem.menuItem,
+      menuItem: { ...pendingItem.menuItem, price: finalPrice },
       quantity: 1,
       sauce: pendingItem.sauce,
       sauceCup: pendingItem.sauceCup,
-      drink: pendingItem.drink
+      drink: pendingItem.drink,
+      addons: pendingItem.addons,
+      spicy: pendingItem.spicy
     });
     
     setPendingItem(null);

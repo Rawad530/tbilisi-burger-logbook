@@ -18,6 +18,7 @@ const OrderItem = ({ item, index, onUpdateQuantity }: OrderItemProps) => {
           <div className="flex-1">
             <h5 className="font-medium text-gray-800">
               {item.menuItem.name}
+              {item.spicy && <span className="text-red-500 ml-1">🌶️ Spicy</span>}
             </h5>
             {item.sauce && (
               <p className="text-sm text-gray-600">Sauce: {item.sauce}</p>
@@ -27,6 +28,9 @@ const OrderItem = ({ item, index, onUpdateQuantity }: OrderItemProps) => {
             )}
             {item.drink && (
               <p className="text-sm text-gray-600">Drink: {item.drink}</p>
+            )}
+            {item.addons.length > 0 && (
+              <p className="text-sm text-gray-600">Add-ons: {item.addons.join(', ')}</p>
             )}
             <p className="text-sm text-gray-600">
               ₾{item.menuItem.price.toFixed(2)} each

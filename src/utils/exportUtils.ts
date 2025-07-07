@@ -1,4 +1,3 @@
-
 import { Order } from "@/types/order";
 
 export const exportOrdersToCSV = (orders: Order[], filename?: string) => {
@@ -10,6 +9,7 @@ export const exportOrdersToCSV = (orders: Order[], filename?: string) => {
     'Quantities',
     'Sauces',
     'Drinks',
+    'Add-ons',
     'Total Price',
     'Status'
   ];
@@ -24,6 +24,11 @@ export const exportOrdersToCSV = (orders: Order[], filename?: string) => {
       order.items.map(item => `${item.menuItem.name}(${item.quantity})`).join('; '),
       order.items.map(item => item.sauce || 'None').join('; '),
       order.items.map(item => item.drink || 'None').join('; '),
+      order.items.map(item => {
+        const addons = [...item.addons];
+        if (item.spicy) addons.push('Spicy');
+        return addons.length > 0 ? addons.join(', ') : 'None';
+      }).join('; '),
       `₾${order.totalPrice.toFixed(2)}`,
       order.status
     ].join(','))
@@ -71,31 +76,93 @@ export const generateOrderSummary = (orders: Order[]) => {
   };
 };
 
-// Email backup functionality
+const parseItemDetails = (itemName: string) => {
+  const isWrap = itemName.toLowerCase().includes('wrap');
+  const mainItem = isWrap ? 'Wrap' : 'Burger';
+  
+  const isChicken = itemName.toLowerCase().includes('chicken');
+  const isBeef = itemName.toLowerCase().includes('beef');
+  const protein = isChicken ? 'Chicken' : isBeef ? 'Beef' : 'N/A';
+  
+  const isDouble = itemName.toLowerCase().includes('double');
+  const load = isDouble ? 'Double' : 'Single';
+  
+  const isCombo = itemName.toLowerCase().includes('combo');
+  const type = isCombo ? 'Combo' : 'A la carte';
+  
+  return { mainItem, protein, load, type };
+};
+
+// Email backup functionality with HTML table
 export const sendEmailBackup = async (orders: Order[], email: string) => {
   try {
-    const csvContent = exportOrdersToCSV(orders, `saucer_burger_backup_${new Date().toISOString().split('T')[0]}.csv`);
+    const tableRows = orders.flatMap(order =>
+      order.items.map(item => {
+        const { mainItem, protein, load, type } = parseItemDetails(item.menuItem.name);
+        const addons = [...item.addons];
+        if (item.spicy) addons.push('Spicy');
+        
+        return `
+          <tr>
+            <td style="border: 1px solid #ddd; padding: 8px;">${order.orderNumber}</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">${order.timestamp.toLocaleDateString()}</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">${mainItem}</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">${protein}</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">${load}</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">${type}</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">${item.sauce || 'N/A'}</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">${type === 'Combo' ? (item.drink || 'N/A') : 'N/A'}</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">${type === 'Combo' ? (item.sauceCup || 'N/A') : 'N/A'}</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">${addons.length > 0 ? addons.join(', ') : 'None'}</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">${item.quantity}</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">₾${(item.menuItem.price * item.quantity).toFixed(2)}</td>
+          </tr>
+        `;
+      })
+    ).join('');
+
+    const htmlTable = `
+      <table style="border-collapse: collapse; width: 100%; margin: 20px 0;">
+        <thead>
+          <tr style="background-color: #f5f5f5;">
+            <th style="border: 1px solid #ddd; padding: 8px;">Order #</th>
+            <th style="border: 1px solid #ddd; padding: 8px;">Date</th>
+            <th style="border: 1px solid #ddd; padding: 8px;">Main Item</th>
+            <th style="border: 1px solid #ddd; padding: 8px;">Protein</th>
+            <th style="border: 1px solid #ddd; padding: 8px;">Load</th>
+            <th style="border: 1px solid #ddd; padding: 8px;">Type</th>
+            <th style="border: 1px solid #ddd; padding: 8px;">Sauce</th>
+            <th style="border: 1px solid #ddd; padding: 8px;">Drink</th>
+            <th style="border: 1px solid #ddd; padding: 8px;">Side Sauce</th>
+            <th style="border: 1px solid #ddd; padding: 8px;">Add-ons</th>
+            <th style="border: 1px solid #ddd; padding: 8px;">Qty</th>
+            <th style="border: 1px solid #ddd; padding: 8px;">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${tableRows}
+        </tbody>
+      </table>
+    `;
     
-    // Create a mailto link with the CSV content
     const subject = encodeURIComponent(`Saucer Burger - Orders Backup ${new Date().toLocaleDateString()}`);
+    const totalRevenue = orders.reduce((sum, order) => sum + order.totalPrice, 0);
+    
     const body = encodeURIComponent(`Hello,
 
-Please find attached the orders backup for Saucer Burger.
+Please find the detailed orders backup for Saucer Burger below.
 
 Backup Details:
 - Total Orders: ${orders.length}
-- Total Revenue: ₾${orders.reduce((sum, order) => sum + order.totalPrice, 0).toFixed(2)}
+- Total Revenue: ₾${totalRevenue.toFixed(2)}
 - Backup Date: ${new Date().toLocaleString()}
 
-CSV Data:
-${csvContent}
+${htmlTable}
 
 Best regards,
 Saucer Burger Management System`);
     
     const mailtoLink = `mailto:${email}?subject=${subject}&body=${body}`;
-    
-    // Open the user's email client
     window.open(mailtoLink);
     
     return true;

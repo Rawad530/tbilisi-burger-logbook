@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { OrderItem as OrderItemType } from "@/types/order";
 import OrderItem from "./OrderItem";
@@ -10,6 +9,8 @@ interface PendingItem {
   sauce?: string;
   sauceCup?: string;
   drink?: string;
+  addons: string[];
+  spicy: boolean;
 }
 
 interface OrderSummaryProps {

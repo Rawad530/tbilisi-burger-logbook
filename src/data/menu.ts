@@ -63,3 +63,8 @@ export const drinkOptions = [
   'Fanta',
   'Sprite'
 ];
+
+export const addOnOptions = [
+  { name: 'Add Cheese Slice', price: 2.00 },
+  { name: 'Add Jalapeno', price: 1.00 }
+];
