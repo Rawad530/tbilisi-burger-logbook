@@ -21,7 +21,7 @@ export const exportOrdersToCSV = (orders: Order[], filename?: string) => {
     ...orders.flatMap(order =>
       order.items.map(item => {
         const { mainItem, protein, load, type } = parseItemDetails(item.menuItem.name);
-        const addons = [...item.addons];
+        const addons = Array.isArray(item.addons) ? [...item.addons] : [];
         if (item.spicy) addons.push('Spicy');
         
         return [
@@ -36,7 +36,7 @@ export const exportOrdersToCSV = (orders: Order[], filename?: string) => {
           type === 'Combo' ? (item.sauceCup || 'N/A') : 'N/A',
           addons.length > 0 ? addons.join(', ') : 'N/A',
           `₾${(item.menuItem.price * item.quantity).toFixed(2)}`
-        ].join(',');
+        ].map(field => `"${field}"`).join(',');
       })
     )
   ].join('\n');
@@ -106,7 +106,7 @@ export const sendEmailBackup = async (orders: Order[], email: string) => {
     const tableRows = orders.flatMap(order =>
       order.items.map(item => {
         const { mainItem, protein, load, type } = parseItemDetails(item.menuItem.name);
-        const addons = [...item.addons];
+        const addons = Array.isArray(item.addons) ? [...item.addons] : [];
         if (item.spicy) addons.push('Spicy');
         
         return `
@@ -212,8 +212,12 @@ export const backupToCloud = async (orders: Order[]) => {
       backupKeys.slice(10).forEach(key => localStorage.removeItem(key));
     }
     
-    // Also send email backup
-    await sendEmailBackup(orders, 'rawad.jalwan@hotmail.com');
+    // Send email backup
+    const emailSent = await sendEmailBackup(orders, 'rawad.jalwan@hotmail.com');
+    
+    if (!emailSent) {
+      throw new Error('Failed to send email backup');
+    }
     
     return true;
   } catch (error) {
