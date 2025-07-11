@@ -16,6 +16,7 @@ export interface OrderItem {
   drink?: string;
   addons: string[];
   spicy: boolean;
+  remarks?: string;
 }
 
 export type OrderStatus = 'preparing' | 'completed';

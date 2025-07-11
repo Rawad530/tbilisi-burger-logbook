@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Order, OrderItem, MenuItem } from "@/types/order";
@@ -20,6 +19,7 @@ interface PendingItem {
   drink?: string;
   addons: string[];
   spicy: boolean;
+  remarks?: string;
 }
 
 const NewOrderDialog = ({ isOpen, onClose, onAddOrder }: NewOrderDialogProps) => {
@@ -42,7 +42,8 @@ const NewOrderDialog = ({ isOpen, onClose, onAddOrder }: NewOrderDialogProps) =>
         existing.sauceCup === item.sauceCup &&
         existing.drink === item.drink &&
         JSON.stringify(existing.addons) === JSON.stringify(item.addons) &&
-        existing.spicy === item.spicy
+        existing.spicy === item.spicy &&
+        existing.remarks === item.remarks
       );
       
       if (existingIndex >= 0) {
@@ -79,7 +80,8 @@ const NewOrderDialog = ({ isOpen, onClose, onAddOrder }: NewOrderDialogProps) =>
       sauceCup: pendingItem.sauceCup,
       drink: pendingItem.drink,
       addons: pendingItem.addons,
-      spicy: pendingItem.spicy
+      spicy: pendingItem.spicy,
+      remarks: pendingItem.remarks
     });
     
     setPendingItem(null);

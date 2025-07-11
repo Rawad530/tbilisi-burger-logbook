@@ -11,6 +11,7 @@ interface PendingItem {
   drink?: string;
   addons: string[];
   spicy: boolean;
+  remarks?: string;
 }
 
 interface OrderSummaryProps {

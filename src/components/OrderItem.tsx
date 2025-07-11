@@ -1,4 +1,3 @@
-
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -31,6 +30,9 @@ const OrderItem = ({ item, index, onUpdateQuantity }: OrderItemProps) => {
             )}
             {item.addons.length > 0 && (
               <p className="text-sm text-gray-600">Add-ons: {item.addons.join(', ')}</p>
+            )}
+            {item.remarks && (
+              <p className="text-sm text-blue-600 italic">Remarks: {item.remarks}</p>
             )}
             <p className="text-sm text-gray-600">
               ₾{item.menuItem.price.toFixed(2)} each

@@ -1,10 +1,9 @@
-
 import { Order } from "@/types/order";
 
 export const exportOrdersToCSV = (orders: Order[], filename?: string) => {
   const headers = [
     'Order ID',
-    'Order Timestamp',
+    'Order Timestamp', 
     'Main Item',
     'Protein',
     'Load',
@@ -13,6 +12,7 @@ export const exportOrdersToCSV = (orders: Order[], filename?: string) => {
     'Drink',
     'Side Sauce',
     'Add Ons',
+    'Remarks',
     'Price (GEL)'
   ];
 
@@ -35,6 +35,7 @@ export const exportOrdersToCSV = (orders: Order[], filename?: string) => {
           type === 'Combo' ? (item.drink || 'N/A') : 'N/A',
           type === 'Combo' ? (item.sauceCup || 'N/A') : 'N/A',
           addons.length > 0 ? addons.join(', ') : 'N/A',
+          item.remarks || 'N/A',
           `₾${(item.menuItem.price * item.quantity).toFixed(2)}`
         ].map(field => `"${field}"`).join(',');
       })
@@ -121,6 +122,7 @@ export const sendEmailBackup = async (orders: Order[], email: string) => {
             <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${type === 'Combo' ? (item.drink || 'N/A') : 'N/A'}</td>
             <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${type === 'Combo' ? (item.sauceCup || 'N/A') : 'N/A'}</td>
             <td style="border: 1px solid #ddd; padding: 8px;">${addons.length > 0 ? addons.join(', ') : 'N/A'}</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">${item.remarks || 'N/A'}</td>
             <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">₾${(item.menuItem.price * item.quantity).toFixed(2)}</td>
           </tr>
         `;
@@ -155,6 +157,7 @@ export const sendEmailBackup = async (orders: Order[], email: string) => {
               <th style="border: 1px solid #ddd; padding: 10px; text-align: center; font-weight: bold;">Drink</th>
               <th style="border: 1px solid #ddd; padding: 10px; text-align: center; font-weight: bold;">Side Sauce</th>
               <th style="border: 1px solid #ddd; padding: 10px; text-align: center; font-weight: bold;">Add Ons</th>
+              <th style="border: 1px solid #ddd; padding: 10px; text-align: center; font-weight: bold;">Remarks</th>
               <th style="border: 1px solid #ddd; padding: 10px; text-align: center; font-weight: bold;">Price (GEL)</th>
             </tr>
           </thead>

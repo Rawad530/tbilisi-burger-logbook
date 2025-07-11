@@ -1,8 +1,9 @@
-
+import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
 import { MenuItem } from "@/types/order";
 import { sauceOptions, drinkOptions, addOnOptions } from "@/data/menu";
 
@@ -13,6 +14,7 @@ interface PendingItem {
   drink?: string;
   addons: string[];
   spicy: boolean;
+  remarks?: string;
 }
 
 interface ItemConfigurationCardProps {
@@ -28,6 +30,7 @@ const ItemConfigurationCard = ({
   onConfirm, 
   onCancel 
 }: ItemConfigurationCardProps) => {
+  const [showRemarks, setShowRemarks] = useState(false);
   const isMainItem = pendingItem.menuItem.category === 'mains' || pendingItem.menuItem.category === 'value';
   
   const handleAddonChange = (addonName: string, checked: boolean) => {
@@ -42,6 +45,10 @@ const ItemConfigurationCard = ({
 
   const handleSpicyChange = (checked: boolean) => {
     onUpdatePendingItem(prev => prev ? { ...prev, spicy: checked } : null);
+  };
+
+  const handleRemarksChange = (value: string) => {
+    onUpdatePendingItem(prev => prev ? { ...prev, remarks: value } : null);
   };
 
   const calculateAddonPrice = () => {
@@ -207,6 +214,45 @@ const ItemConfigurationCard = ({
             </div>
           </div>
         )}
+
+        {/* Remarks Section */}
+        <div className="mb-3">
+          {!showRemarks ? (
+            <Button
+              onClick={() => setShowRemarks(true)}
+              variant="outline"
+              size="sm"
+              className="text-gray-600 hover:text-gray-800"
+            >
+              Add Remarks
+            </Button>
+          ) : (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="block text-sm font-medium text-gray-700">
+                  Special Requests
+                </label>
+                <Button
+                  onClick={() => {
+                    setShowRemarks(false);
+                    handleRemarksChange('');
+                  }}
+                  variant="ghost"
+                  size="sm"
+                  className="text-gray-500 hover:text-gray-700 px-2"
+                >
+                  Remove
+                </Button>
+              </div>
+              <Textarea
+                placeholder="Enter any special customer requests..."
+                value={pendingItem.remarks || ''}
+                onChange={(e) => handleRemarksChange(e.target.value)}
+                className="min-h-[80px]"
+              />
+            </div>
+          )}
+        </div>
 
         <div className="flex space-x-2">
           <Button onClick={onConfirm} className="bg-green-500 hover:bg-green-600">
