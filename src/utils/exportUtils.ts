@@ -5,6 +5,7 @@ export const exportOrdersToCSV = (orders: Order[], filename?: string) => {
     'Order ID',
     'Order Timestamp', 
     'Main Item',
+    'Quantity',
     'Protein',
     'Load',
     'Type',
@@ -28,6 +29,7 @@ export const exportOrdersToCSV = (orders: Order[], filename?: string) => {
           order.orderNumber,
           order.timestamp.toLocaleString('en-GB'),
           mainItem,
+          item.quantity,
           protein,
           load,
           type,
@@ -129,6 +131,7 @@ export const sendEmailBackup = async (orders: Order[], email: string) => {
             <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${order.orderNumber}</td>
             <td style="border: 1px solid #ddd; padding: 8px;">${order.timestamp.toLocaleString('en-GB')}</td>
             <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${mainItem}</td>
+            <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${item.quantity}</td>
             <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${protein}</td>
             <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${load}</td>
             <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${type}</td>
@@ -164,6 +167,7 @@ export const sendEmailBackup = async (orders: Order[], email: string) => {
               <th style="border: 1px solid #ddd; padding: 10px; text-align: center; font-weight: bold;">Order ID</th>
               <th style="border: 1px solid #ddd; padding: 10px; text-align: center; font-weight: bold;">Order Timestamp</th>
               <th style="border: 1px solid #ddd; padding: 10px; text-align: center; font-weight: bold;">Main Item</th>
+              <th style="border: 1px solid #ddd; padding: 10px; text-align: center; font-weight: bold;">Quantity</th>
               <th style="border: 1px solid #ddd; padding: 10px; text-align: center; font-weight: bold;">Protein</th>
               <th style="border: 1px solid #ddd; padding: 10px; text-align: center; font-weight: bold;">Load</th>
               <th style="border: 1px solid #ddd; padding: 10px; text-align: center; font-weight: bold;">Type</th>
