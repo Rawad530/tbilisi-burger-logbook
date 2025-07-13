@@ -85,6 +85,20 @@ export const generateOrderSummary = (orders: Order[]) => {
 };
 
 const parseItemDetails = (itemName: string) => {
+  // Check if item is actually a burger or wrap
+  const isBurgerOrWrap = itemName.toLowerCase().includes('burger') || itemName.toLowerCase().includes('wrap');
+  
+  if (!isBurgerOrWrap) {
+    // For non-burger/wrap items (drinks, sides, sauces, add-ons), return the actual item name
+    return {
+      mainItem: itemName,
+      protein: 'N/A',
+      load: 'N/A',
+      type: 'N/A'
+    };
+  }
+  
+  // Original logic for burgers and wraps only
   const isWrap = itemName.toLowerCase().includes('wrap');
   const mainItem = isWrap ? 'Wrap' : 'Burger';
   
