@@ -169,10 +169,22 @@ export const sendEmailBackup = async (orders: Order[], email: string) => {
     
     const { supabase } = await import("@/integrations/supabase/client");
     
+    // Serialize orders with proper date handling
+    const serializedOrders = orders.map(order => ({
+      ...order,
+      timestamp: order.timestamp.toISOString(), // Convert Date to string
+      items: order.items.map(item => ({
+        ...item,
+        menuItem: {
+          ...item.menuItem
+        }
+      }))
+    }));
+    
     console.log('Calling Supabase Edge Function...');
     const { data, error } = await supabase.functions.invoke('send-backup-email', {
       body: {
-        orders: orders,
+        orders: serializedOrders,
         email: email
       }
     });

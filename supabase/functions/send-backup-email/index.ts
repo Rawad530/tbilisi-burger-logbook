@@ -22,8 +22,17 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     console.log('Backup email function called');
     
-    const { orders, email }: BackupEmailRequest = await req.json();
-    console.log('Received data:', { ordersCount: orders?.length, email });
+    // Check if Resend API key is available
+    const resendApiKey = Deno.env.get("RESEND_API_KEY");
+    if (!resendApiKey) {
+      throw new Error("RESEND_API_KEY environment variable is not configured");
+    }
+    
+    const requestBody = await req.json();
+    console.log('Raw request body:', JSON.stringify(requestBody, null, 2));
+    
+    const { orders, email }: BackupEmailRequest = requestBody;
+    console.log('Parsed data:', { ordersCount: orders?.length, email });
 
     if (!orders || !email) {
       throw new Error("Orders and email are required");
@@ -31,6 +40,12 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (!Array.isArray(orders) || orders.length === 0) {
       throw new Error("Orders must be a non-empty array");
+    }
+    
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      throw new Error("Invalid email format");
     }
 
     // Helper function to parse item details (updated to match frontend)
@@ -182,12 +197,16 @@ const handler = async (req: Request): Promise<Response> => {
     `;
 
     console.log('Sending email via Resend...');
+    console.log('Email content preview:', htmlContent.substring(0, 500) + '...');
+    
     const emailResponse = await resend.emails.send({
       from: "Saucer Burger <onboarding@resend.dev>",
       to: [email],
       subject: `Saucer Burger - Orders Backup ${new Date().toLocaleDateString('en-GB')}`,
       html: htmlContent,
     });
+    
+    console.log('Resend response:', emailResponse);
 
     console.log("Backup email sent successfully:", emailResponse);
 
