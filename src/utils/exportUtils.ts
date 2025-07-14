@@ -87,31 +87,74 @@ export const generateOrderSummary = (orders: Order[]) => {
 };
 
 const parseItemDetails = (itemName: string) => {
-  // Check if item is actually a burger or wrap
-  const isBurgerOrWrap = itemName.toLowerCase().includes('burger') || itemName.toLowerCase().includes('wrap');
+  const lowerName = itemName.toLowerCase();
   
-  if (!isBurgerOrWrap) {
-    // For non-burger/wrap items (drinks, sides, sauces, add-ons), return the actual item name
+  // Check for specific categories
+  const isDrink = ['coca cola', 'fanta', 'sprite', 'cappy', 'ice tea', 'water'].some(drink => lowerName.includes(drink));
+  const isSauce = ['sauce', 'cup', 'jalapeno'].some(sauce => lowerName.includes(sauce));
+  const isSide = ['fries', 'onion rings', 'strips'].some(side => lowerName.includes(side));
+  const isAddon = lowerName.includes('add ');
+  
+  if (isDrink) {
     return {
       mainItem: itemName,
       protein: 'N/A',
       load: 'N/A',
-      type: 'N/A'
+      type: 'Drink'
+    };
+  }
+  
+  if (isSauce) {
+    return {
+      mainItem: itemName,
+      protein: 'N/A',
+      load: 'N/A',
+      type: 'Sauce'
+    };
+  }
+  
+  if (isSide) {
+    return {
+      mainItem: itemName,
+      protein: 'N/A',
+      load: 'N/A',
+      type: 'Side'
+    };
+  }
+  
+  if (isAddon) {
+    return {
+      mainItem: itemName,
+      protein: 'N/A',
+      load: 'N/A',
+      type: 'Add-on'
+    };
+  }
+  
+  // Check if item is actually a burger or wrap
+  const isBurgerOrWrap = lowerName.includes('burger') || lowerName.includes('wrap');
+  
+  if (!isBurgerOrWrap) {
+    return {
+      mainItem: itemName,
+      protein: 'N/A',
+      load: 'N/A',
+      type: 'Other'
     };
   }
   
   // Original logic for burgers and wraps only
-  const isWrap = itemName.toLowerCase().includes('wrap');
+  const isWrap = lowerName.includes('wrap');
   const mainItem = isWrap ? 'Wrap' : 'Burger';
   
-  const isChicken = itemName.toLowerCase().includes('chicken');
-  const isBeef = itemName.toLowerCase().includes('beef');
+  const isChicken = lowerName.includes('chicken');
+  const isBeef = lowerName.includes('beef');
   const protein = isChicken ? 'Chicken' : isBeef ? 'Beef' : 'N/A';
   
-  const isDouble = itemName.toLowerCase().includes('double');
+  const isDouble = lowerName.includes('double');
   const load = isDouble ? 'Double' : 'Single';
   
-  const isCombo = itemName.toLowerCase().includes('combo');
+  const isCombo = lowerName.includes('combo');
   const type = isCombo ? 'Combo' : 'A la carte';
   
   return { mainItem, protein, load, type };
@@ -120,8 +163,13 @@ const parseItemDetails = (itemName: string) => {
 // Email backup functionality using Supabase Edge Function
 export const sendEmailBackup = async (orders: Order[], email: string) => {
   try {
+    console.log('Starting email backup process...');
+    console.log('Orders count:', orders.length);
+    console.log('Email:', email);
+    
     const { supabase } = await import("@/integrations/supabase/client");
     
+    console.log('Calling Supabase Edge Function...');
     const { data, error } = await supabase.functions.invoke('send-backup-email', {
       body: {
         orders: orders,
@@ -130,14 +178,21 @@ export const sendEmailBackup = async (orders: Order[], email: string) => {
     });
 
     if (error) {
-      console.error('Error sending backup email:', error);
-      return false;
+      console.error('Edge Function error:', error);
+      throw new Error(`Edge Function failed: ${error.message || JSON.stringify(error)}`);
+    }
+
+    if (!data || !data.success) {
+      console.error('Edge Function returned unsuccessful response:', data);
+      throw new Error('Email backup failed - no success response from Edge Function');
     }
 
     console.log('Backup email sent successfully:', data);
     return true;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to send email backup:', error);
+    // Show user-friendly error
+    alert(`Email backup failed: ${error.message || 'Unknown error occurred'}`);
     return false;
   }
 };

@@ -20,36 +20,89 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    console.log('Backup email function called');
+    
     const { orders, email }: BackupEmailRequest = await req.json();
+    console.log('Received data:', { ordersCount: orders?.length, email });
 
     if (!orders || !email) {
       throw new Error("Orders and email are required");
     }
 
-    // Helper function to parse item details (same as frontend)
+    if (!Array.isArray(orders) || orders.length === 0) {
+      throw new Error("Orders must be a non-empty array");
+    }
+
+    // Helper function to parse item details (updated to match frontend)
     const parseItemDetails = (itemName: string) => {
-      const isBurgerOrWrap = itemName.toLowerCase().includes('burger') || itemName.toLowerCase().includes('wrap');
+      const lowerName = itemName.toLowerCase();
+      
+      // Check for specific categories
+      const isDrink = ['coca cola', 'fanta', 'sprite', 'cappy', 'ice tea', 'water'].some(drink => lowerName.includes(drink));
+      const isSauce = ['sauce', 'cup', 'jalapeno'].some(sauce => lowerName.includes(sauce));
+      const isSide = ['fries', 'onion rings', 'strips'].some(side => lowerName.includes(side));
+      const isAddon = lowerName.includes('add ');
+      
+      if (isDrink) {
+        return {
+          mainItem: itemName,
+          protein: 'N/A',
+          load: 'N/A',
+          type: 'Drink'
+        };
+      }
+      
+      if (isSauce) {
+        return {
+          mainItem: itemName,
+          protein: 'N/A',
+          load: 'N/A',
+          type: 'Sauce'
+        };
+      }
+      
+      if (isSide) {
+        return {
+          mainItem: itemName,
+          protein: 'N/A',
+          load: 'N/A',
+          type: 'Side'
+        };
+      }
+      
+      if (isAddon) {
+        return {
+          mainItem: itemName,
+          protein: 'N/A',
+          load: 'N/A',
+          type: 'Add-on'
+        };
+      }
+      
+      // Check if item is actually a burger or wrap
+      const isBurgerOrWrap = lowerName.includes('burger') || lowerName.includes('wrap');
       
       if (!isBurgerOrWrap) {
         return {
           mainItem: itemName,
           protein: 'N/A',
           load: 'N/A',
-          type: 'N/A'
+          type: 'Other'
         };
       }
       
-      const isWrap = itemName.toLowerCase().includes('wrap');
+      // Original logic for burgers and wraps only
+      const isWrap = lowerName.includes('wrap');
       const mainItem = isWrap ? 'Wrap' : 'Burger';
       
-      const isChicken = itemName.toLowerCase().includes('chicken');
-      const isBeef = itemName.toLowerCase().includes('beef');
+      const isChicken = lowerName.includes('chicken');
+      const isBeef = lowerName.includes('beef');
       const protein = isChicken ? 'Chicken' : isBeef ? 'Beef' : 'N/A';
       
-      const isDouble = itemName.toLowerCase().includes('double');
+      const isDouble = lowerName.includes('double');
       const load = isDouble ? 'Double' : 'Single';
       
-      const isCombo = itemName.toLowerCase().includes('combo');
+      const isCombo = lowerName.includes('combo');
       const type = isCombo ? 'Combo' : 'A la carte';
       
       return { mainItem, protein, load, type };
@@ -128,6 +181,7 @@ const handler = async (req: Request): Promise<Response> => {
       </div>
     `;
 
+    console.log('Sending email via Resend...');
     const emailResponse = await resend.emails.send({
       from: "Saucer Burger <onboarding@resend.dev>",
       to: [email],
@@ -137,7 +191,15 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("Backup email sent successfully:", emailResponse);
 
-    return new Response(JSON.stringify({ success: true, id: emailResponse.id }), {
+    if (!emailResponse.id) {
+      throw new Error("Failed to send email - no ID returned from Resend");
+    }
+
+    return new Response(JSON.stringify({ 
+      success: true, 
+      id: emailResponse.id,
+      message: "Backup email sent successfully"
+    }), {
       status: 200,
       headers: {
         "Content-Type": "application/json",
@@ -146,8 +208,17 @@ const handler = async (req: Request): Promise<Response> => {
     });
   } catch (error: any) {
     console.error("Error in send-backup-email function:", error);
+    
+    // Return detailed error information
+    const errorMessage = error.message || 'Unknown error occurred';
+    const errorDetails = {
+      error: errorMessage,
+      timestamp: new Date().toISOString(),
+      function: 'send-backup-email'
+    };
+    
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify(errorDetails),
       {
         status: 500,
         headers: { "Content-Type": "application/json", ...corsHeaders },
