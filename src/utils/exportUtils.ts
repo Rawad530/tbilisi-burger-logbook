@@ -233,7 +233,7 @@ export const backupToCloud = async (orders: Order[]) => {
     }
     
     // Send email backup
-    const emailSent = await sendEmailBackup(orders, 'rawad.jalwan@hotmail.com');
+    const emailSent = await sendEmailBackup(orders, 'sarrecordsinc@gmail.com');
     
     if (!emailSent) {
       throw new Error('Failed to send email backup');
