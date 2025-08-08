@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Order, OrderItem, MenuItem } from "@/types/order";
+import { Order, OrderItem, MenuItem, PaymentMode } from "@/types/order";
 import { menuItems, addOnOptions } from "@/data/menu";
 import { getNextOrderNumber } from "@/utils/orderUtils";
 import MenuSection from "./MenuSection";
 import OrderSummary from "./OrderSummary";
+import PaymentModeDialog from "./PaymentModeDialog";
 
 interface NewOrderDialogProps {
   isOpen: boolean;
@@ -25,6 +26,7 @@ interface PendingItem {
 const NewOrderDialog = ({ isOpen, onClose, onAddOrder }: NewOrderDialogProps) => {
   const [selectedItems, setSelectedItems] = useState<OrderItem[]>([]);
   const [pendingItem, setPendingItem] = useState<PendingItem | null>(null);
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
 
   const addItemToOrder = (menuItem: MenuItem) => {
     if (menuItem.requiresSauce || menuItem.isCombo || menuItem.category === 'mains' || menuItem.category === 'value') {
@@ -106,19 +108,24 @@ const NewOrderDialog = ({ isOpen, onClose, onAddOrder }: NewOrderDialogProps) =>
 
   const handleCreateOrder = () => {
     if (selectedItems.length === 0) return;
+    setShowPaymentDialog(true);
+  };
 
+  const handleConfirmOrder = (paymentMode: PaymentMode) => {
     const newOrder: Order = {
       id: Date.now().toString(),
       orderNumber: getNextOrderNumber(),
       timestamp: new Date(),
       items: selectedItems,
       totalPrice,
-      status: 'preparing'
+      status: 'preparing',
+      paymentMode: paymentMode
     };
 
     onAddOrder(newOrder);
     setSelectedItems([]);
     setPendingItem(null);
+    setShowPaymentDialog(false);
     onClose();
   };
 
@@ -177,6 +184,12 @@ const NewOrderDialog = ({ isOpen, onClose, onAddOrder }: NewOrderDialogProps) =>
           />
         </div>
       </DialogContent>
+      
+      <PaymentModeDialog
+        isOpen={showPaymentDialog}
+        onClose={() => setShowPaymentDialog(false)}
+        onConfirm={handleConfirmOrder}
+      />
     </Dialog>
   );
 };

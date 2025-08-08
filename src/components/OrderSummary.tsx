@@ -76,7 +76,7 @@ const OrderSummary = ({
             className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white py-3 text-lg font-semibold"
             disabled={selectedItems.length === 0}
           >
-            Create Order
+            Select Payment Mode
           </Button>
         </>
       )}

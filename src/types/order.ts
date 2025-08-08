@@ -21,6 +21,8 @@ export interface OrderItem {
 
 export type OrderStatus = 'preparing' | 'completed';
 
+export type PaymentMode = 'Card - Terminal' | 'Bank Transfer' | 'Cash';
+
 export interface Order {
   id: string;
   orderNumber: number;
@@ -28,4 +30,5 @@ export interface Order {
   items: OrderItem[];
   totalPrice: number;
   status: OrderStatus;
+  paymentMode: PaymentMode;
 }

@@ -3,7 +3,8 @@ import { Order } from "@/types/order";
 export const exportOrdersToCSV = (orders: Order[], filename?: string) => {
   const headers = [
     'Order ID',
-    'Order Timestamp', 
+    'Order Timestamp',
+    'Payment Mode',
     'Main Item',
     'Quantity',
     'Protein',
@@ -28,6 +29,7 @@ export const exportOrdersToCSV = (orders: Order[], filename?: string) => {
         return [
           order.orderNumber,
           order.timestamp.toLocaleString('en-GB'),
+          order.paymentMode || 'N/A',
           mainItem,
           item.quantity,
           protein,

@@ -2,7 +2,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Clock, Receipt, CheckCircle, X, Trash2 } from "lucide-react";
+import { Clock, Receipt, CheckCircle, X, Trash2, CreditCard } from "lucide-react";
 import { Order } from "@/types/order";
 import { formatTimestamp } from "@/utils/orderUtils";
 
@@ -47,6 +47,10 @@ const OrderStatusCard = ({ order, onCompleteOrder, onCancelOrder, onDeleteOrder 
               ₾{order.totalPrice.toFixed(2)}
             </Badge>
             <div className="flex items-center gap-2">
+              <Badge variant="outline" className="flex items-center gap-1">
+                <CreditCard className="w-3 h-3" />
+                {order.paymentMode}
+              </Badge>
               <Badge variant={isCompleted ? 'default' : 'secondary'}>
                 {isCompleted ? 'Completed' : 'Preparing'}
               </Badge>
