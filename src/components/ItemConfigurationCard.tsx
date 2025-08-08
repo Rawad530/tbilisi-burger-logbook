@@ -68,7 +68,7 @@ const ItemConfigurationCard = ({
           <span className="text-orange-600 ml-2">₾{totalPrice.toFixed(2)}</span>
         </h4>
         
-        {pendingItem.menuItem.requiresSauce && (
+        {pendingItem.menuItem.requiresSauce && pendingItem.menuItem.category !== 'value' && (
           <div className="mb-3">
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Sauce *
