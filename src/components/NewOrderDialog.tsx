@@ -5,7 +5,7 @@ import { menuItems, addOnOptions } from "@/data/menu";
 import { getNextOrderNumber } from "@/utils/orderUtils";
 import MenuSection from "./MenuSection";
 import OrderSummary from "./OrderSummary";
-import PaymentModeDialog from "./PaymentModeDialog";
+import PaymentModeDialog from "@/components/PaymentModeDialog";
 
 interface NewOrderDialogProps {
   isOpen: boolean;
