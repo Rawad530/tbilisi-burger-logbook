@@ -144,6 +144,7 @@ const handler = async (req: Request): Promise<Response> => {
             <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${type === 'Combo' ? (item.sauceCup || 'N/A') : 'N/A'}</td>
             <td style="border: 1px solid #ddd; padding: 8px;">${addons.length > 0 ? addons.join(', ') : 'N/A'}</td>
             <td style="border: 1px solid #ddd; padding: 8px;">${item.remarks || 'N/A'}</td>
+            <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${order.paymentMode || 'N/A'}</td>
             <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">₾${(item.menuItem.price * item.quantity).toFixed(2)}</td>
           </tr>
         `;
@@ -182,6 +183,7 @@ const handler = async (req: Request): Promise<Response> => {
               <th style="border: 1px solid #ddd; padding: 10px; text-align: center; font-weight: bold;">Side Sauce</th>
               <th style="border: 1px solid #ddd; padding: 10px; text-align: center; font-weight: bold;">Add Ons</th>
               <th style="border: 1px solid #ddd; padding: 10px; text-align: center; font-weight: bold;">Remarks</th>
+              <th style="border: 1px solid #ddd; padding: 10px; text-align: center; font-weight: bold;">Payment Mode</th>
               <th style="border: 1px solid #ddd; padding: 10px; text-align: center; font-weight: bold;">Price (GEL)</th>
             </tr>
           </thead>
