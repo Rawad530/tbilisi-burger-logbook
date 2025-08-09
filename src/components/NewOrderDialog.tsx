@@ -62,7 +62,7 @@ const NewOrderDialog = ({ isOpen, onClose, onAddOrder }: NewOrderDialogProps) =>
   const confirmPendingItem = () => {
     if (!pendingItem) return;
     
-    const requiredSauce = pendingItem.menuItem.requiresSauce && !pendingItem.sauce;
+    const requiredSauce = pendingItem.menuItem.requiresSauce && pendingItem.menuItem.category !== 'value' && !pendingItem.sauce;
     const requiredDrink = (pendingItem.menuItem.isCombo || pendingItem.menuItem.name.includes('Meal')) && !pendingItem.drink;
     
     if (requiredSauce || requiredDrink) return;
