@@ -6,6 +6,8 @@ import { getNextOrderNumber } from "@/utils/orderUtils";
 import MenuSection from "./MenuSection";
 import OrderSummary from "./OrderSummary";
 import PaymentModeDialog from "@/components/PaymentModeDialog";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface NewOrderDialogProps {
   isOpen: boolean;
@@ -27,6 +29,7 @@ const NewOrderDialog = ({ isOpen, onClose, onAddOrder }: NewOrderDialogProps) =>
   const [selectedItems, setSelectedItems] = useState<OrderItem[]>([]);
   const [pendingItem, setPendingItem] = useState<PendingItem | null>(null);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  const { toast } = useToast();
 
   const addItemToOrder = (menuItem: MenuItem) => {
     if (menuItem.requiresSauce || menuItem.isCombo || menuItem.category === 'mains' || menuItem.category === 'value') {
@@ -111,22 +114,46 @@ const NewOrderDialog = ({ isOpen, onClose, onAddOrder }: NewOrderDialogProps) =>
     setShowPaymentDialog(true);
   };
 
-  const handleConfirmOrder = (paymentMode: PaymentMode) => {
-    const newOrder: Order = {
-      id: Date.now().toString(),
-      orderNumber: getNextOrderNumber(),
-      timestamp: new Date(),
-      items: selectedItems,
-      totalPrice,
-      status: 'preparing',
-      paymentMode: paymentMode
-    };
+  const handleConfirmOrder = async (paymentMode: PaymentMode) => {
+    try {
+      // Check app version before submitting order
+      const { error } = await supabase.functions.invoke('version-check', {
+        headers: {
+          'x-app-version': '3'
+        }
+      });
 
-    onAddOrder(newOrder);
-    setSelectedItems([]);
-    setPendingItem(null);
-    setShowPaymentDialog(false);
-    onClose();
+      if (error) {
+        toast({
+          title: "Update Required",
+          description: "A mandatory update is required. Please install the new version.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const newOrder: Order = {
+        id: Date.now().toString(),
+        orderNumber: getNextOrderNumber(),
+        timestamp: new Date(),
+        items: selectedItems,
+        totalPrice,
+        status: 'preparing',
+        paymentMode: paymentMode
+      };
+
+      onAddOrder(newOrder);
+      setSelectedItems([]);
+      setPendingItem(null);
+      setShowPaymentDialog(false);
+      onClose();
+    } catch (error) {
+      toast({
+        title: "Update Required",
+        description: "A mandatory update is required. Please install the new version.",
+        variant: "destructive"
+      });
+    }
   };
 
   const categorizedItems = {
